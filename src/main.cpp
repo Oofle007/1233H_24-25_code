@@ -114,14 +114,9 @@ void opcontrol() {
         double power = (powerInput / 127.0) * fabs(powerInput) * (12000 / 127.0);
         double turn = (turnInput / 127.0) * fabs(turnInput) * (12000 / 127.0);
 
-        // Calculate the voltage for each side
-        double leftMotorsVoltage = power + turn;
-        double rightMotorsVoltage = power - turn;
+        chassis->getModel()->arcade(power, turn);
 
-        // Set motor voltages
-        leftSide.moveVoltage(leftMotorsVoltage);
-        rightSide.moveVoltage(rightMotorsVoltage);
-
+        // tank drive
         //double leftInput = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
         //double rightInput = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y);
 
