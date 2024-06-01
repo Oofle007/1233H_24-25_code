@@ -1,129 +1,101 @@
 #include "main.h"
-#include "okapi/api.hpp"
+#include "lemlib/api.hpp"
 
-// gotta take into account the gear ratio or else won't drive right distances
+// Define Motors
+pros::MotorGroup leftMotors({1, 2, 3}, pros::MotorGearset::blue);
+pros::MotorGroup rightMotors({4, 5, 6}, pros::MotorGearset::blue);
 
-using namespace okapi;
-// Define motors
-MotorGroup leftSide({-20, -19, -1});
-MotorGroup rightSide({10, 11, 12});
+// Define Encoders
+pros::adi::Encoder horizontalEncoder('A', 'B');
+pros::adi::Encoder verticalEncoder('C', 'D');
 
-auto wheelDiameter = 2.75_in;
-auto gearRatio = 4/3_in;
-auto adjustedDiameter = wheelDiameter * gearRatio;
-auto trackWidth = 12_in;
+// Define Tracking Wheels
+lemlib::TrackingWheel horizontalTrackingWheel(&horizontalEncoder, lemlib::Omniwheel::NEW_275, 1.25);
+lemlib::TrackingWheel verticalTrackingWheel(&verticalEncoder, lemlib::Omniwheel::NEW_275, 5);
 
-auto chassis = ChassisControllerBuilder()
-        .withMotors(leftSide, rightSide) // left motor is 1, right motor is 2 (reversed)
-        .withGains(
-                {0.001, 0.0048, 0.00001}, // Distance controller gains
-                {0.0008, 0.002, 0.00001}, // Turn controller gains
-                {0.0001, 0, 0.0001}  // Angle controller gains (helps drive straight)
-        )
-                // green gearset, 4 inch wheel diameter, 11.5 inch wheel track
-        .withDimensions(AbstractMotor::gearset::blue, {{3.66666_in, 21.33333333_in}, imev5BlueTPR})
-        .withOdometry() // use the same scales as the chassis (above)
-        .buildOdometry(); // build an odometry chassis
+// IMU
+pros::Imu imu(10);
 
-/**
- * A callback function for LLEMU's center button.
- *
- * When this callback is fired, it will toggle line 2 of the LCD text between
- * "I was pressed!" and nothing.
- */
-void on_center_button() {
-	static bool pressed = false;
-	pressed = !pressed;
-	if (pressed) {
-		pros::lcd::set_text(2, "I was pressed!");
-	} else {
-		pros::lcd::clear_line(2);
-	}
-}
+// Define the drivetrain
+lemlib::Drivetrain drivetrain(&leftMotors, // left motors
+                              &rightMotors, // right motors
+                              12.5, // Track Width
+                              lemlib::Omniwheel::NEW_275, // Wheel
+                              450, // Drive RPM
+                              2 // Horizontal Drift
+);
 
-/**
- * Runs initialization code. This occurs as soon as the program is started.
- *
- * All other competition modes are blocked by initialize; it is recommended
- * to keep execution time for this mode under a few seconds.
- */
+// Define Sensors
+lemlib::OdomSensors sensors(&verticalTrackingWheel, // Vertical tracking wheel
+                            nullptr, // No second Vertical Encoder
+                            &horizontalTrackingWheel, // Horizontal tracking wheel
+                            nullptr, // No second Horizontal Encoder
+                            &imu // Inertial
+);
+
+// Lateral PID controller
+lemlib::ControllerSettings lateralController(10, // proportional gain (kP)
+                                             0, // integral gain (kI)
+                                             3, // derivative gain (kD)
+                                             3, // anti windup
+                                             1, // small error range, in inches
+                                             100, // small error range timeout, in milliseconds
+                                             3, // large error range, in inches
+                                             500, // large error range timeout, in milliseconds
+                                             20 // maximum acceleration (slew)
+);
+
+// Angular PID controller
+lemlib::ControllerSettings angularController(2, // proportional gain (kP)
+                                             0, // integral gain (kI)
+                                             10, // derivative gain (kD)
+                                             3, // anti windup
+                                             1, // small error range, in degrees
+                                             100, // small error range timeout, in milliseconds
+                                             3, // large error range, in degrees
+                                             500, // large error range timeout, in milliseconds
+                                             0 // maximum acceleration (slew)
+);
+
+// Define Chassis
+lemlib::Chassis chassis(drivetrain, // drivetrain settings
+                        lateralController, // lateral PID settings
+                        angularController, // angular PID settings
+                        sensors // Sensors
+
+);
+
 void initialize() {
-	pros::lcd::initialize();
-	pros::lcd::register_btn1_cb(on_center_button);
+    pros::lcd::initialize(); // initialize brain screen
+    chassis.calibrate(); // calibrate sensors
+    // print position to brain screen
+    pros::Task screen_task([&]() {
+        while (true) {
+            // Print robot Pose to the screen
+            pros::lcd::print(0, "X: %f", chassis.getPose().x); // x
+            pros::lcd::print(1, "Y: %f", chassis.getPose().y); // y
+            pros::lcd::print(2, "Theta: %f", chassis.getPose().theta); // heading
+            pros::delay(20); // don't starve cpu
+        }
+    });
+
 }
 
-/**
- * Runs while the robot is in the disabled state of Field Management System or
- * the VEX Competition Switch, following either autonomous or opcontrol. When
- * the robot is enabled, this task will exit.
- */
 void disabled() {}
 
-/**
- * Runs after initialize(), and before autonomous when connected to the Field
- * Management System or the VEX Competition Switch. This is intended for
- * competition-specific initialization routines, such as an autonomous selector
- * on the LCD.
- *
- * This task will exit when the robot is enabled and autonomous or opcontrol
- * starts.
- */
 void competition_initialize() {}
 
-/**
- * Runs the user autonomous code. This function will be started in its own task
- * with the default priority and stack size whenever the robot is enabled via
- * the Field Management System or the VEX Competition Switch in the autonomous
- * mode. Alternatively, this function may be called in initialize or opcontrol
- * for non-competition testing purposes.
- *
- * If the robot is disabled or communications is lost, the autonomous task
- * will be stopped. Re-enabling the robot will restart the task, not re-start it
- * from where it left off.
- */
 void autonomous() {
-    chassis->moveDistance(24_in);
-    chassis->turnToAngle(180_deg);
-    chassis->moveDistance(24_in);
-    chassis->turnToAngle(0_deg);
+
 }
 
-/**
- * Runs the operator control code. This function will be started in its own task
- * with the default priority and stack size whenever the robot is enabled via
- * the Field Management System or the VEX Competition Switch in the operator
- * control mode.
- *
- * If no competition control is connected, this function will run immediately
- * following initialize().
- *
- * If the robot is disabled or communications is lost, the
- * operator control task will be stopped. Re-enabling the robot will restart the
- * task, not resume it from where it left off.
- */
 void opcontrol() {
     // Define controller
     pros::Controller controller(pros::E_CONTROLLER_MASTER);
 
-    while (true) {
-        // getting controller input
-        double powerInput = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
-        double turnInput = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
 
-        // exponential acceleration
-        double power = (powerInput / 127.0) * fabs(powerInput) * (12000 / 127.0);
-        double turn = (turnInput / 127.0) * fabs(turnInput) * (12000 / 127.0);
 
-        chassis->getModel()->arcade(power, turn);
+    pros::delay(20); // delay to prevent overloading the CPU
 
-        // tank drive
-        //double leftInput = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
-        //double rightInput = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y);
-
-        //leftSide.moveVoltage(leftInput * 12000);
-        //rightSide.moveVoltage(rightInput * 12000);
-
-        pros::delay(20); // delay to prevent overloading the CPU
-
-    }
 }
+
