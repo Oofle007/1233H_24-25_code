@@ -19,10 +19,9 @@ void Arm::moveTask(void* param) {
             float fourBarOutput = arm->fourBarPID.update(fourBarError);
             arm->fourBar.move_voltage(fourBarOutput * 12000);
 
-//            float twoBarError = arm->twoBarTarget - arm->twoBar.get_position();
-//            float twoBarOutput = arm->twoBarPID.update(twoBarError);
-//            arm->twoBar.move_voltage(twoBarOutput);
-
+            float twoBarError = arm->twoBarTarget - arm->twoBar.get_position();
+            float twoBarOutput = arm->twoBarPID.update(twoBarError);
+            arm->twoBar.move_voltage(twoBarOutput);
             arm->settled = (std::abs(fourBarError) < arm->threshold);
 
             std::cout << arm->settled << std::endl;

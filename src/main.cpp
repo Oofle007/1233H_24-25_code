@@ -1,106 +1,37 @@
+//   __  __           _
+//  |  \/  |   __ _  (_)  _ __
+//  | |\/| |  / _` | | | | '_ \
+//  | |  | | | (_| | | | | | | |
+//  |_|  |_|  \__,_| |_| |_| |_|
+
 #include "main.h"
-#include "lemlib/api.hpp"
-#include "pros/llemu.hpp"
-#include "hteam/arm.h"
 #include "hteam/interface.h"
 #include "hteam/autons.h"
+#include "hteam/robot.h"
+
+ASSET(newPath_txt);
+ASSET(testPath_txt);
+ASSET(testPath2_txt);
 
 // Controller
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
 
-// Define Motors
-pros::MotorGroup leftMotors({-1, -2, -20}, pros::MotorGearset::blue);
-pros::MotorGroup rightMotors({10, 11, 3}, pros::MotorGearset::blue);
+// Define a variable to store the previous state of the button
+bool button_pressed = false;
 
-// Define Encoders
-pros::adi::Encoder horizontalEncoder('A', 'B');
-pros::adi::Encoder verticalEncoder('C', 'D');
+std::shared_ptr<Robot> robot = std::make_shared<Robot>();
 
-// Define Tracking Wheels
-lemlib::TrackingWheel horizontalTrackingWheel(&horizontalEncoder, lemlib::Omniwheel::NEW_275, -5);
-lemlib::TrackingWheel verticalTrackingWheel(&verticalEncoder, lemlib::Omniwheel::NEW_275, 1.25);
+int intake1_volt = 0;
+int intake2_volt = 0;
+int lift_volt = 0;
 
-// IMU
-pros::Imu imu(12);
-
-
-// Declare Arm object
-std::shared_ptr<Arm> arm = std::make_shared<Arm>(8, 15, pros::MotorGearset::green);
-
-// Define the drivetrain
-lemlib::Drivetrain drivetrain(&leftMotors, // left motors
-                              &rightMotors, // right motors
-                              12.5, // Track Width
-                              lemlib::Omniwheel::NEW_275, // Wheel
-                              450, // Drive RPM
-                              2 // Horizontal Drift
-);
-
-// Define Sensors
-lemlib::OdomSensors sensors(&verticalTrackingWheel, // Vertical tracking wheel
-                            nullptr, // No second Vertical Encoder
-                            &horizontalTrackingWheel, // Horizontal tracking wheel
-                            nullptr, // No second Horizontal Encoder
-                            &imu // Inertial
-);
-
-// Lateral PID controller
-lemlib::ControllerSettings lateralController(10, // proportional gain (kP)
-                                             0, // integral gain (kI)
-                                             3, // derivative gain (kD)
-                                             3, // anti-windup
-                                             1, // small error range, in inches
-                                             100, // small error range timeout, in milliseconds
-                                             3, // large error range, in inches
-                                             500, // large error range timeout, in milliseconds
-                                             20 // maximum acceleration (slew)
-);
-
-// Angular PID controller
-lemlib::ControllerSettings angularController(2, // proportional gain (kP)
-                                             0, // integral gain (kI)
-                                             10, // derivative gain (kD)
-                                             3, // anti-windup
-                                             1, // small error range, in degrees
-                                             100, // small error range timeout, in milliseconds
-                                             3, // large error range, in degrees
-                                             500, // large error range timeout, in milliseconds
-                                             0 // maximum acceleration (slew)
-);
-
-// Exponential drive curve for the throttle
-lemlib::ExpoDriveCurve throttle_curve(3, // joystick deadband out of 127
-                                      10, // minimum output where drivetrain will move out of 127
-                                      1.019 // expo curve gain
-);
-
-// Exponential drive curve for steering
-lemlib::ExpoDriveCurve steer_curve(3, // joystick deadband out of 127
-                                   10, // minimum output where drivetrain will move out of 127
-                                   1.019 // expo curve gain
-);
-
-// Define Chassis
-std::shared_ptr<lemlib::Chassis> chassis = std::make_shared<lemlib::Chassis>(drivetrain,
-                                                                             lateralController,
-                                                                             angularController,
-                                                                             sensors,
-                                                                             &throttle_curve,
-                                                                             &steer_curve
-);
-
-Autons autons(arm, chassis);
+Autons autons(robot);
 
 // Create our interface object
 Interface interface;
 
-void center_callback() {
-    // Reset all lift motor values
-    arm->reset_positions();
-}
-
 void initialize() {
-    chassis->calibrate(); // calibrate sensors
+    robot->chassis.calibrate(); // calibrate sensors
 }
 
 void disabled() {}
@@ -142,10 +73,6 @@ void autonomous() {
             autons.skills();
             break;
     }
-
-//    arm->moveToPosition(400, 0, 1);
-//    arm->waitUntilDone();
-//    pros::lcd::print(4, "Arm Done", arm->getFourBarPosition());
 }
 
 void opcontrol() {
@@ -153,19 +80,54 @@ void opcontrol() {
         int leftY = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
         int rightX = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
 
+        intake1_volt = 0;
+        intake2_volt = 0;
+        lift_volt = 0;
+
         // Detect Button presses
-        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {
-            arm->moveVoltage(12000, 0); // Move motor forward at full power (12000 mV)
+        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {  // 2nd stage intake
+            intake2_volt = 12000;
         }
-            // Check if the button R2 is pressed
-        else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
-            arm->moveVoltage(-12000, 0); // Move motor backward at full power (12000 mV)
+
+        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {  // 1st stage intake
+            intake1_volt = 6000;
+        }
+
+        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) {  // Lift Up
+            lift_volt = 6000;
+        }
+
+        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) {  // Lift Down
+            lift_volt = -6000;
+        }
+
+        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y)) { // Reverse Intake
+            intake1_volt = -6000;
+            intake2_volt = -12000;
+        }
+
+        robot->intake1.move_voltage(intake1_volt);
+        robot->intake2.move_voltage(intake2_volt);
+        robot->lift.move_voltage(lift_volt);
+
+        // Detect button press for toggling the pneumatic
+        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_B)) {  // Assume 'X' button is used for toggle
+            if (!button_pressed) {  // Toggle only when the button is pressed, not held
+                robot->pneumatic_state = !robot->pneumatic_state;  // Toggle the pneumatic state
+                robot->mogoPneumatic.set_value(robot->pneumatic_state);  // Set the pneumatic to the new state
+                button_pressed = true;  // Update the button pressed state
+            }
         } else {
-            arm->moveVoltage(0, 0); // Stop the motor
+            button_pressed = false;  // Reset the button pressed state when the button is released
         }
 
         // Move bot with split-arcade drive
-        chassis->arcade(leftY, rightX);
+        robot->chassis.arcade(leftY, rightX);
+
+        // Print position
+        pros::screen::print(pros::E_TEXT_MEDIUM, 50, 15, "X: %f", robot->chassis.getPose().x);
+        pros::screen::print(pros::E_TEXT_MEDIUM, 50, 30, "Y: %f", robot->chassis.getPose().y);
+        pros::screen::print(pros::E_TEXT_MEDIUM, 50, 45, "Theta: %f", robot->chassis.getPose().theta);
 
         pros::delay(20); // delay to prevent overloading the CPU
     }

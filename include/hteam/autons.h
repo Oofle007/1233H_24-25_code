@@ -1,12 +1,11 @@
 #ifndef INC_1233H_24_25_CODE_AUTONS_H
 #define INC_1233H_24_25_CODE_AUTONS_H
 
-#include "arm.h"
-#include "lemlib/chassis/chassis.hpp"
+#include "hteam/robot.h"
 
 class Autons {
 public:
-    Autons(std::shared_ptr<Arm> arm, std::shared_ptr<lemlib::Chassis> chassis);
+    Autons(std::shared_ptr<Robot> robot);
 
     void red1();
     void red2();
@@ -18,8 +17,8 @@ public:
     void blue4();
 
     void skills();
+
 private:
-    std::shared_ptr<Arm> arm;
-    std::shared_ptr<lemlib::Chassis> chassis;
+    std::shared_ptr<Robot> robot;
 };
 #endif //INC_1233H_24_25_CODE_AUTONS_H
