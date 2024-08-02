@@ -96,24 +96,32 @@ void Autons::red2() { // L4MOGO
     pros::delay(1000);
 
     // Get first red ring right next to MOGO
-    robot->chassis.moveToPoint(-24, 47, 10000);
+    robot->chassis.moveToPoint(-24, 45, 10000);
+
+    // Back up to not pick up opponents ring
+    robot->chassis.moveToPoint(-26, 43, 10000, {.forwards=false, .minSpeed=40, .earlyExitRange=2});
 
     // Get left ring of the two
-    robot->chassis.moveToPose(-11, 54, 90, 10000, {.maxSpeed=60, .minSpeed=1, .earlyExitRange=2});
+    robot->chassis.moveToPoint(-11, 54, 10000, {.maxSpeed=60, .minSpeed=1, .earlyExitRange=2});
 
     // Back up
-    robot->chassis.moveToPoint(-20, 48, 10000, {.forwards=false});
+    robot->chassis.moveToPoint(-20, 44, 10000, {.forwards=false});
 
     // Get last ring
-    robot->chassis.moveToPose(-10, 46, 90, 10000, {.maxSpeed=60});
+    robot->chassis.turnToPoint(-10, 44, 10000, {.minSpeed=1, .earlyExitRange=10});
+    robot->chassis.moveToPoint(-10, 44, 10000, {.maxSpeed=80});
 
     // Back up
-    robot->chassis.moveToPoint(-26, 46, 10000, {.forwards=false});
-    robot->chassis.moveToPose(-27, 9, 180, 10000);
+    robot->chassis.moveToPoint(-26, 40, 10000, {.forwards=false}, false);
+
+    pros::delay(1000);
 
     // Release MOGO so rings aren't touching the bot
     robot->mogoPneumatic.set_value(false);
     robot->pneumatic_state = false;
+
+    // Touch the ladder
+    robot->chassis.moveToPose(-27, 9, 180, 10000);
 }
 
 void Autons::red3() {
@@ -211,16 +219,16 @@ void Autons::blue2() { // L4MOGO
     robot->chassis.moveToPoint(24, 47, 10000);
 
     // Get left ring of the two
-    robot->chassis.moveToPose(11, 54, -90, 10000, {.maxSpeed=60, .minSpeed=1, .earlyExitRange=2});
+    robot->chassis.moveToPoint(11, 54, 10000, {.maxSpeed=60, .minSpeed=1, .earlyExitRange=2});
 
     // Back up
-    robot->chassis.moveToPoint(20, 48, 10000, {.forwards=false});
+    robot->chassis.moveToPoint(20, 45, 10000, {.forwards=false});
 
     // Get last ring
-    robot->chassis.moveToPose(10, 46, -90, 10000, {.maxSpeed=60});
+    robot->chassis.moveToPoint(10, 46, 10000, {.maxSpeed=60});
 
     // Back up
-    robot->chassis.moveToPoint(26, 46, 10000, {.forwards=false}, false);
+    robot->chassis.moveToPoint(26, 40, 10000, {.forwards=false}, false);
 
     pros::delay(500);
 
