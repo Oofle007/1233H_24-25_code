@@ -177,8 +177,8 @@ void Interface::displayBlueScreen() {
     pros::screen::fill_rect(161, 45, 314, 55);
 
     // Create all the buttons for the screen
-    createButton(10, 70, 117, 230, "RSWP", pros::Color::blue, BLUE_1);
-    createButton(128, 70, 235, 230, "L4MOGO", pros::Color::blue, BLUE_2);
+    createButton(10, 70, 117, 230, "LSWP", pros::Color::blue, BLUE_1);
+    createButton(128, 70, 235, 230, "R4MOGO", pros::Color::blue, BLUE_2);
     createButton(245, 70, 352, 230, "Auton 3", pros::Color::blue, BLUE_3);
     createButton(362, 70, 470, 230, "Auton 4", pros::Color::blue, BLUE_4);
 
