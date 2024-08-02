@@ -165,8 +165,8 @@ void Interface::displayRedScreen() {
     pros::screen::fill_rect(6, 45, 154, 55);
 
     // Create all the buttons for the screen
-    createButton(10, 70, 117, 230, "Auton 1", pros::Color::red, RED_1);
-    createButton(128, 70, 235, 230, "Auton 2", pros::Color::red, RED_2);
+    createButton(10, 70, 117, 230, "RSWP", pros::Color::red, RED_1);
+    createButton(128, 70, 235, 230, "L4MOGO", pros::Color::red, RED_2);
     createButton(245, 70, 352, 230, "Auton 3", pros::Color::red, RED_3);
     createButton(362, 70, 470, 230, "Auton 4", pros::Color::red, RED_4);
 }
@@ -177,8 +177,8 @@ void Interface::displayBlueScreen() {
     pros::screen::fill_rect(161, 45, 314, 55);
 
     // Create all the buttons for the screen
-    createButton(10, 70, 117, 230, "Auton 1", pros::Color::blue, BLUE_1);
-    createButton(128, 70, 235, 230, "Auton 2", pros::Color::blue, BLUE_2);
+    createButton(10, 70, 117, 230, "RSWP", pros::Color::blue, BLUE_1);
+    createButton(128, 70, 235, 230, "L4MOGO", pros::Color::blue, BLUE_2);
     createButton(245, 70, 352, 230, "Auton 3", pros::Color::blue, BLUE_3);
     createButton(362, 70, 470, 230, "Auton 4", pros::Color::blue, BLUE_4);
 
@@ -190,7 +190,7 @@ void Interface::displaySkillsScreen() {
     pros::screen::fill_rect(321, 45, 474, 55);
 
     // Create the skills button
-    createButton(30, 90, 450, 210, "Skills Auton", pros::Color::white, SKILLS);
+    createButton(30, 90, 450, 210, "45 PT SKILLS", pros::Color::white, SKILLS);
 }
 
 void Interface::createButton(std::int16_t x0, std::int16_t y0, std::int16_t x1, std::int16_t y1, std::string text,

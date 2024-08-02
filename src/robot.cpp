@@ -1,5 +1,10 @@
-#include "hteam/robot.h"
+//   ____            _               _
+//  |  _ \    ___   | |__     ___   | |_
+//  | |_) |  / _ \  | '_ \   / _ \  | __|
+//  |  _ <  | (_) | | |_) | | (_) | | |_
+//  |_| \_\  \___/  |_.__/   \___/   \__|
 
+#include "hteam/robot.h"
 Robot::Robot() : pneumatic_state(false),
                  mogoPneumatic('F'),
                  intake1(16), intake2(-14), lift(-15),
@@ -52,6 +57,4 @@ Robot::Robot() : pneumatic_state(false),
                          sensors,
                          &throttle_curve,
                          &steer_curve) {
-
-
 }

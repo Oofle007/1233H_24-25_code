@@ -9,10 +9,6 @@
 #include "hteam/autons.h"
 #include "hteam/robot.h"
 
-ASSET(newPath_txt);
-ASSET(testPath_txt);
-ASSET(testPath2_txt);
-
 // Controller
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
 
