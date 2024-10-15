@@ -1,0 +1,23 @@
+-21.626, -24.433, 68.381
+-22.195, -26.35, 67.856
+-22.694, -28.287, 66.693
+-23.081, -30.248, 63.206
+-23.262, -32.238, 58.398
+-23.088, -34.228, 57.795
+-23.092, -36.216, 52.521
+-23.451, -38.167, 52.861
+-23.48, -40.167, 47.001
+-23.521, -42.166, 40.297
+-23.593, -44.165, 32.229
+-23.601, -45.178, 27.246
+-23.473, -47.174, 12.536
+-23.442, -47.71, 0
+-23.442, -47.71, 0
+-22.306, -67.678, 0
+endData
+146.3
+70
+200
+-21.626, -24.433, -24.928, -34.998, -21.956, -33.182, -23.442, -37.474
+-23.442, -37.474, -23.607, -52.002, -23.937, -38.795, -23.442, -47.71
+#PATH.JERRYIO-DATA {"appVersion":"0.7.0","format":"LemLib v0.4.x (inch, byte-voltage)","gc":{"robotWidth":12.5,"robotHeight":12,"robotIsHolonomic":false,"showRobot":false,"uol":2.54,"pointDensity":2,"controlMagnetDistance":0.7750015500031,"fieldImage":{"displayName":"V5RC 2025 - High Stakes","signature":"V5RC 2025 - High Stakes","origin":{"__type":"built-in"}}},"paths":[{"segments":[{"controls":[{"uid":"wLOPXoxLvT","x":-21.62625268432355,"y":-24.432712956335006,"lock":false,"visible":true,"heading":190,"__type":"end-point"},{"uid":"SnRitF5PEY","x":-24.92797065139585,"y":-34.998210450966354,"lock":false,"visible":true,"__type":"control"},{"uid":"4xQPOcOuf2","x":-21.95642448103078,"y":-33.18226556907659,"lock":false,"visible":true,"__type":"control"},{"uid":"tcood8VsXT","x":-23.442197566213316,"y":-37.474498926270584,"lock":false,"visible":true,"heading":180,"__type":"end-point"}],"speedProfiles":[],"lookaheadKeyframes":[],"uid":"w8qY03G2g7"},{"controls":[{"uid":"tcood8VsXT","x":-23.442197566213316,"y":-37.474498926270584,"lock":false,"visible":true,"heading":180,"__type":"end-point"},{"uid":"oPqwAgCWEI","x":-23.607283464566933,"y":-52.002057981388695,"lock":false,"visible":true,"__type":"control"},{"uid":"8hnkLBIStM","x":-23.93745526127416,"y":-38.7951861130995,"lock":false,"visible":true,"__type":"control"},{"uid":"wEhQsE9gjn","x":-23.442197566213316,"y":-47.7098246241947,"lock":false,"visible":true,"heading":180,"__type":"end-point"}],"speedProfiles":[],"lookaheadKeyframes":[],"uid":"6MxJxuDxxe"}],"pc":{"speedLimit":{"minLimit":{"value":0,"label":"0"},"maxLimit":{"value":127,"label":"127"},"step":1,"from":12,"to":70},"bentRateApplicableRange":{"minLimit":{"value":0,"label":"0"},"maxLimit":{"value":1,"label":"1"},"step":0.001,"from":0,"to":0.202},"maxDecelerationRate":146.3},"name":"Path","uid":"H6GdXreQ2b","lock":false,"visible":true}]}
