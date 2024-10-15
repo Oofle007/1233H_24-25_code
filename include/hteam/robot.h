@@ -8,12 +8,14 @@ class Robot {
 public:
     Robot();
 
-    bool pneumatic_state;
+    bool mogoPneumaticState;
+    bool doinkerPneumaticState;
     pros::adi::DigitalOut mogoPneumatic;
+    pros::adi::DigitalOut liftPneumatic;
+    pros::adi::DigitalOut doinkerPneumatic;
 
     pros::Motor intake1;
     pros::Motor intake2;
-    pros::Motor lift;
 
     pros::MotorGroup leftMotors;
     pros::MotorGroup rightMotors;
@@ -21,8 +23,10 @@ public:
     lemlib::ControllerSettings lateralController;
     lemlib::ControllerSettings angularController;
 
-    pros::adi::Encoder horizontalEncoder;
-    pros::adi::Encoder verticalEncoder;
+    lemlib::PID intake2PID;
+
+    pros::Rotation horizontalEncoder;
+    pros::Rotation verticalEncoder;
 
     lemlib::TrackingWheel horizontalTrackingWheel;
     lemlib::TrackingWheel verticalTrackingWheel;
@@ -33,6 +37,14 @@ public:
     lemlib::ExpoDriveCurve steer_curve;
 
     lemlib::Chassis chassis;
+
+    pros::Optical opticalSensor;
+
+    std::string allowedColor;
+
+    bool liftUp;
+
+//    void colorSort(std::int32_t requestedVoltage, bool sort)
 };
 
 #endif //INC_1233H_24_25_CODE_ROBOT_H
