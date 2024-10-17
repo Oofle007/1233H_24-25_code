@@ -4,6 +4,34 @@
 #ifndef INC_1233H_24_25_CODE_ROBOT_H
 #define INC_1233H_24_25_CODE_ROBOT_H
 
+enum Color {
+    BLUE, RED
+};
+
+class Intake {
+public:
+    explicit Intake(std::int8_t intakePort);
+    void startIntakeTask();
+    void enableColorSorting();
+    void disableColorSorting();
+    void holdIntake();
+    void stopHoldingIntake();
+    void setVoltage(std::int32_t voltage);
+    void setAllowedColor(Color color);
+private:
+    pros::Motor intakeMotor;
+    std::int32_t currentVoltage;
+    bool holding;
+    lemlib::PID holdPID;
+
+    bool sortColors;
+    Color allowedColor;
+    pros::Optical opticalSensor;
+
+    pros::Mutex mutex;
+    static void intakeTask(void* param);
+};
+
 class Robot {
 public:
     Robot();
@@ -15,15 +43,13 @@ public:
     pros::adi::DigitalOut doinkerPneumatic;
 
     pros::Motor intake1;
-    pros::Motor intake2;
+    Intake intake2;
 
     pros::MotorGroup leftMotors;
     pros::MotorGroup rightMotors;
     lemlib::Drivetrain drivetrain;
     lemlib::ControllerSettings lateralController;
     lemlib::ControllerSettings angularController;
-
-    lemlib::PID intake2PID;
 
     pros::Rotation horizontalEncoder;
     pros::Rotation verticalEncoder;
@@ -38,13 +64,7 @@ public:
 
     lemlib::Chassis chassis;
 
-    pros::Optical opticalSensor;
-
-    std::string allowedColor;
-
     bool liftUp;
-
-//    void colorSort(std::int32_t requestedVoltage, bool sort)
 };
 
 #endif //INC_1233H_24_25_CODE_ROBOT_H

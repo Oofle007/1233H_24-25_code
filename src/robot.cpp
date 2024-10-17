@@ -5,6 +5,7 @@
 //  |_| \_\  \___/  |_.__/   \___/   \__|
 
 #include "hteam/robot.h"
+
 Robot::Robot() : mogoPneumaticState(false), doinkerPneumaticState(false),
                  mogoPneumatic('C'), liftPneumatic('A'), doinkerPneumatic('F'),
                  intake1(-6), intake2(4),
@@ -57,34 +58,111 @@ Robot::Robot() : mogoPneumaticState(false), doinkerPneumaticState(false),
                          sensors,
                          &throttle_curve,
                          &steer_curve),
-                 opticalSensor(4),
-                 allowedColor("Red"), // Auto Default sorting color to red
-                 intake2PID(100,  // kP
-                            0,  // DON'T CHANGE FROM 0 EVER
-                            0,  // kD
-                            0,  // integral anti windup range
-                            false),  // don't reset integral when sign of error flips
-                 liftUp(false) {
+                 liftUp(false) {}
+
+
+Intake::Intake(const std::int8_t intakePort) : intakeMotor(intakePort, pros::MotorGearset::blue),
+                                               sortColors(true),
+                                               allowedColor(RED),  // Auto default allowed color to Red
+                                               currentVoltage(0),
+                                               mutex(),
+                                               holding(false),
+                                               holdPID(100,  // kP
+                                                       0,  // DON'T CHANGE FROM 0 EVER
+                                                       0,  // kD
+                                                       0,  // integral anti windup range
+                                                       false),  // don't reset integral when sign of error flips
+                                               opticalSensor(4) {}
+
+void Intake::startIntakeTask() {
+    pros::Task myTask(intakeTask, this, "IntakeMoveTask");
 }
 
-//void Robot::colorSort(std::int32_t requestedVoltage, bool sort) {
-//    const float REVERSE_TIME = 0.5;  // Time that the intake will reverse in MILLISECONDS
-//    const int MIN_PROXIMITY = 50; // Minimum proximity (distance) that the color sorter "detects" a ring
-//    const double BLUE_RING_HUE = 200;
-//    double timeStartReverse;  // The time in milliseconds when we set the intake to run in reverse
-//
-//    if (sort) {  // Only sort rings when specified to
-//        if (opticalSensor.get_proximity() > MIN_PROXIMITY) {  // If there is a ring in front of the optical sensor
-//            // If the ring detected is red and we want to only allow blue rings, reset our time stamp to start reversing
-//            if ((allowedColor == "Blue" && opticalSensor.get_hue() <= BLUE_RING_HUE) || (allowedColor == "Red" && opticalSensor.get_hue() >= BLUE_RING_HUE)) {
-//                timeStartReverse = pros::c::millis();
-//
-//        }
-//    }
-//
-//    if (pros::c::millis() - timeStartReverse >= REVERSE_TIME) {
-//        intake2.move_voltage(requestedVoltage);
-//    } else {
-//        intake2.move_voltage(-1 * abs(requestedVoltage));
-//    }
-//}
+void Intake::enableColorSorting() {
+    mutex.take();
+    sortColors = true;
+    mutex.give();
+}
+
+void Intake::disableColorSorting() {
+    mutex.take();
+    sortColors = false;
+    mutex.give();
+}
+
+void Intake::holdIntake() {
+    mutex.take();
+    holding = true;
+    intakeMotor.set_zero_position(0);
+    mutex.give();
+}
+
+void Intake::stopHoldingIntake() {
+    mutex.take();
+    holding = false;
+    mutex.give();
+}
+
+void Intake::setVoltage(std::int32_t voltage) {
+    mutex.take();
+    currentVoltage = voltage;
+    mutex.give();
+}
+
+void Intake::setAllowedColor(Color color) {
+    mutex.take();
+    allowedColor = color;
+    mutex.give();
+}
+
+void Intake::intakeTask(void *param) {
+    Intake *intake = static_cast<Intake *>(param);
+
+    intake->opticalSensor.set_led_pwm(100);
+
+    // Declare variables for color sorting
+    const float REVERSE_TIME = 10;  // Time that the intake will reverse in MILLISECONDS
+    const int MIN_PROX = 50; // Minimum proximity (distance) that the color sorter "detects" a ring
+    const double BLUE_RING_HUE = 200;
+    double timeStartReverse;  // The time in milliseconds when we set the intake to run in reverse
+    const std::uint8_t INTAKE2TARGET = 0;  // The intake's goal will always be 0
+    float holdPIDoutput;
+
+    while (true) {
+        intake->mutex.take();  // lock mutex to ensure exclusive excess
+
+        if (intake->holding && intake->currentVoltage == 0) {  // Hold the intake when the lift is up and I don't give it a voltage
+            // PID to keep the intake from moving when the lift is up so rings can't fall off
+            holdPIDoutput = intake->holdPID.update(INTAKE2TARGET - intake->intakeMotor.get_position());
+            intake->intakeMotor.move_voltage(holdPIDoutput);
+
+        } else if (intake->sortColors) {  // COLOR SORTING
+
+            if (intake->opticalSensor.get_proximity() > MIN_PROX) {  // If there is a ring in front of the optical sensor
+                // If the ring detected is red and we want to only allow blue rings, reset our time stamp to start reversing
+                if ((intake->allowedColor == BLUE && intake->opticalSensor.get_hue() < BLUE_RING_HUE) ||
+                    (intake->allowedColor == RED && intake->opticalSensor.get_hue() >= BLUE_RING_HUE)) {
+                    timeStartReverse = pros::c::millis();  // Create a timestamp of the last time a ring of the opposing alliance was detected
+                }
+            }
+
+            // Check if we should be reversing the intake depending on the time of the last ring detected and how long the intake should be reversed for
+            if ((pros::c::millis() - timeStartReverse) >= REVERSE_TIME) {
+                intake->intakeMotor.move_voltage(intake->currentVoltage);
+                intake->intakeMotor.set_zero_position(0);  // If lift is up, we need to reset the position so the PID keeps it where the intake was last
+            } else {
+                // Eject the ring off of the hook by spinning the intake in reverse
+                intake->intakeMotor.move_voltage(-12000);
+                intake->intakeMotor.set_zero_position(0);  // If lift is up, we need to reset the position so the PID keeps it where the intake was last
+            }
+
+        } else {  // Not sorting colors
+            intake->intakeMotor.move_voltage(intake->currentVoltage);
+            intake->intakeMotor.set_zero_position(0);  // If lift is up, we need to reset the position so the PID keeps it where the intake was last
+
+        }
+
+        intake->mutex.give();
+        pros::delay(10); // don't hog CPU
+    }
+}

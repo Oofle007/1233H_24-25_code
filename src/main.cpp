@@ -8,7 +8,6 @@
 #include "hteam/interface.h"
 #include "hteam/autons.h"
 #include "hteam/robot.h"
-#include <sstream>
 
 // Controller
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
@@ -29,6 +28,8 @@ Interface interface;
 
 void initialize() {
     robot->chassis.calibrate(); // calibrate sensors
+    robot->intake2.startIntakeTask();  // Start the intake task
+    robot->intake2.enableColorSorting();
 }
 
 void disabled() {}
@@ -43,61 +44,55 @@ void autonomous() {
         case NONE:
             break;
         case RED_1:
+            robot->intake2.setAllowedColor(RED);
             autons.red1();
             break;
         case RED_2:
+            robot->intake2.setAllowedColor(RED);
             autons.red2();
             break;
         case RED_3:
+            robot->intake2.setAllowedColor(RED);
             autons.red3();
             break;
         case RED_4:
+            robot->intake2.setAllowedColor(RED);
             autons.red4();
             break;
         case BLUE_1:
-            robot->allowedColor = "Blue";
+            robot->intake2.setAllowedColor(BLUE);
             autons.blue1();
             break;
         case BLUE_2:
-            robot->allowedColor = "Blue";
+            robot->intake2.setAllowedColor(BLUE);
             autons.blue2();
             break;
         case BLUE_3:
-            robot->allowedColor = "Blue";
+            robot->intake2.setAllowedColor(BLUE);
             autons.blue3();
             break;
         case BLUE_4:
-            robot->allowedColor = "Blue";
+            robot->intake2.setAllowedColor(BLUE);
             autons.blue4();
             break;
         case SKILLS:
+            robot->intake2.setAllowedColor(RED);
             autons.skills();
             break;
     }
 }
 
 void opcontrol() {
-    robot->opticalSensor.set_led_pwm(100);
-    std::uint8_t INTAKE2TARGET = 0;
     while (true) {
         int leftY = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
         int rightX = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
 
         intake1_volt = 0;
         intake2_volt = 0;
-        bool allow = true;
 
         // Detect Button presses
         if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {  // 2nd stage intake
-            if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_RIGHT)) {
-                intake2_volt = 0;
-                robot->intake2.move_velocity(80);  // Spin intake slow
-                allow = false;
-            } else {
-                intake2_volt = 12000;
-                robot->intake2.set_zero_position(INTAKE2TARGET);
-            }
-
+            intake2_volt = 12000;
         }
 
         if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_RIGHT)) {
@@ -110,11 +105,12 @@ void opcontrol() {
 
         if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) {  // Lift Up
             robot->liftUp = true;
-            robot->intake2.set_zero_position(INTAKE2TARGET);
+            robot->intake2.holdIntake();
         }
 
         if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) {  // Lift Down
             robot->liftUp = false;
+            robot->intake2.stopHoldingIntake();
         }
 
         if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y)) { // Reverse Intake
@@ -124,14 +120,7 @@ void opcontrol() {
 
         robot->liftPneumatic.set_value(robot->liftUp);
         robot->intake1.move_voltage(intake1_volt);
-
-        if (allow) {
-            robot->intake2.move_voltage(intake2_volt);
-        }
-
-        if (robot->liftUp && !controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {
-            robot->intake2.move_voltage(robot->intake2PID.update(INTAKE2TARGET - robot->intake2.get_position()));  // PID to keep the intake from moving when the lift is up so rings can't fall off
-        }
+        robot->intake2.setVoltage(intake2_volt);
 
         // Detect button press for toggling the MOGO pneumatic
         if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_B)) {  // 'B' button used for toggle
@@ -158,16 +147,10 @@ void opcontrol() {
         // Move bot with split-arcade drive
         robot->chassis.arcade(leftY, rightX);
 
-        std::stringstream ss;
-        ss << robot->opticalSensor.get_hue() << "|" << robot->opticalSensor.get_proximity();
-
         // Print position
-        pros::screen::erase();
         pros::screen::print(pros::E_TEXT_MEDIUM, 50, 15, "X: %f", robot->chassis.getPose().x);
         pros::screen::print(pros::E_TEXT_MEDIUM, 50, 30, "Y: %f", robot->chassis.getPose().y);
         pros::screen::print(pros::E_TEXT_MEDIUM, 50, 45, "Theta: %f", robot->chassis.getPose().theta);
-        pros::screen::print(pros::E_TEXT_MEDIUM, 50, 75, "Optical Hue|Prox: %s", ss.str());
-
 
         pros::delay(10); // delay to prevent overloading the CPU
     }
