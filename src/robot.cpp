@@ -38,8 +38,8 @@ Robot::Robot() : mogoPneumaticState(false), doinkerPneumaticState(false),
                                    90), // maximum acceleration (slew)
                  horizontalEncoder(-13),
                  verticalEncoder(8),
-                 horizontalTrackingWheel(&horizontalEncoder, lemlib::Omniwheel::NEW_275, 0),
-                 verticalTrackingWheel(&verticalEncoder, lemlib::Omniwheel::NEW_275, 1.625),
+                 horizontalTrackingWheel(&horizontalEncoder, lemlib::Omniwheel::NEW_275, 0, 1),
+                 verticalTrackingWheel(&verticalEncoder, lemlib::Omniwheel::NEW_275, 1.625, 1),
                  imu(12),
                  sensors(&verticalTrackingWheel, // Vertical Encoder
                          nullptr, // No second Vertical Encoder
