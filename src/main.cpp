@@ -29,7 +29,6 @@ Interface interface;
 void initialize() {
     robot->chassis.calibrate(); // calibrate sensors
     robot->intake2.startIntakeTask();  // Start the intake task
-    robot->intake2.enableColorSorting();
 }
 
 void disabled() {}
@@ -40,6 +39,7 @@ void competition_initialize() {
 
 void autonomous() {
     auto auton = interface.getSelectedAuton();
+    robot->intake2.enableColorSorting();
     switch (auton) {
         case NONE:
             break;
@@ -83,6 +83,11 @@ void autonomous() {
 }
 
 void opcontrol() {
+    robot->intake2.disableColorSorting();  // Drivers don't need color sorting
+
+    robot->chassis.moveToPoint(48, 48, 10000, {}, false);
+    robot->chassis.moveToPose(0, 0, 0, 10000, {.forwards=false}, false);
+
     while (true) {
         int leftY = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
         int rightX = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);

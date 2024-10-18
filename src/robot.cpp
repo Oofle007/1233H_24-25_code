@@ -14,11 +14,11 @@ Robot::Robot() : mogoPneumaticState(false), doinkerPneumaticState(false),
                  drivetrain(&leftMotors, // left motors
                             &rightMotors, // right motors
                             12.5, // Track Width
-                            lemlib::Omniwheel::NEW_275, // Wheel
+                            lemlib::Omniwheel::NEW_325, // Wheel
                             480, // Drive RPM
                             2 // Horizontal Drift
                  ),
-                 lateralController(0, // proportional gain (kP)
+                 lateralController(3, // proportional gain (kP)
                                    0, // integral gain (kI)
                                    0, // derivative gain (kD)
                                    0, // anti-windup
@@ -27,7 +27,7 @@ Robot::Robot() : mogoPneumaticState(false), doinkerPneumaticState(false),
                                    3.5, // large error range, in inches
                                    500, // large error range timeout, in milliseconds
                                    50), // maximum acceleration (slew)
-                 angularController(0, // proportional gain (kP)
+                 angularController(1, // proportional gain (kP)
                                    0, // integral gain (kI)
                                    0, // derivative gain (kD)
                                    0, // anti-windup
@@ -36,12 +36,12 @@ Robot::Robot() : mogoPneumaticState(false), doinkerPneumaticState(false),
                                    3.5, // large error range, in degrees
                                    500, // large error range timeout, in milliseconds
                                    90), // maximum acceleration (slew)
-                 horizontalEncoder(13),
-                 verticalEncoder(-8),
-                 horizontalTrackingWheel(&horizontalEncoder, lemlib::Omniwheel::NEW_2, -0.09),
-                 verticalTrackingWheel(&verticalEncoder, lemlib::Omniwheel::NEW_2, 1),
+                 horizontalEncoder(-13),
+                 verticalEncoder(8),
+                 horizontalTrackingWheel(&horizontalEncoder, lemlib::Omniwheel::NEW_275, 0),
+                 verticalTrackingWheel(&verticalEncoder, lemlib::Omniwheel::NEW_275, 1.625),
                  imu(12),
-                 sensors(&verticalTrackingWheel, // No Vertical Encoder
+                 sensors(&verticalTrackingWheel, // Vertical Encoder
                          nullptr, // No second Vertical Encoder
                          &horizontalTrackingWheel, // Horizontal tracking wheel
                          nullptr, // No second Horizontal Encoder
@@ -72,7 +72,7 @@ Intake::Intake(const std::int8_t intakePort) : intakeMotor(intakePort, pros::Mot
                                                        0,  // kD
                                                        0,  // integral anti windup range
                                                        false),  // don't reset integral when sign of error flips
-                                               opticalSensor(4) {}
+                                               opticalSensor(14) {}
 
 void Intake::startIntakeTask() {
     pros::Task myTask(intakeTask, this, "IntakeMoveTask");
@@ -81,12 +81,14 @@ void Intake::startIntakeTask() {
 void Intake::enableColorSorting() {
     mutex.take();
     sortColors = true;
+    opticalSensor.set_led_pwm(100);
     mutex.give();
 }
 
 void Intake::disableColorSorting() {
     mutex.take();
     sortColors = false;
+    opticalSensor.set_led_pwm(0);
     mutex.give();
 }
 
@@ -118,12 +120,10 @@ void Intake::setAllowedColor(Color color) {
 void Intake::intakeTask(void *param) {
     Intake *intake = static_cast<Intake *>(param);
 
-    intake->opticalSensor.set_led_pwm(100);
-
     // Declare variables for color sorting
-    const float REVERSE_TIME = 10;  // Time that the intake will reverse in MILLISECONDS
-    const int MIN_PROX = 50; // Minimum proximity (distance) that the color sorter "detects" a ring
-    const double BLUE_RING_HUE = 200;
+    const float REVERSE_TIME = 50;  // Time that the intake will reverse in MILLISECONDS
+    const int MIN_PROX = 60; // Minimum proximity (distance) that the color sorter "detects" a ring
+    const double BLUE_RING_HUE = 150;
     double timeStartReverse;  // The time in milliseconds when we set the intake to run in reverse
     const std::uint8_t INTAKE2TARGET = 0;  // The intake's goal will always be 0
     float holdPIDoutput;
@@ -163,6 +163,6 @@ void Intake::intakeTask(void *param) {
         }
 
         intake->mutex.give();
-        pros::delay(10); // don't hog CPU
+        pros::delay(20); // don't hog CPU
     }
 }
