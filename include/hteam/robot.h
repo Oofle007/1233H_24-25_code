@@ -36,8 +36,6 @@ class Robot {
 public:
     Robot();
 
-    bool mogoPneumaticState;
-    bool doinkerPneumaticState;
     pros::adi::DigitalOut mogoPneumatic;
     pros::adi::DigitalOut liftPneumatic;
     pros::adi::DigitalOut doinkerPneumatic;

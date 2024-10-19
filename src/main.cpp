@@ -8,22 +8,21 @@
 #include "hteam/interface.h"
 #include "hteam/autons.h"
 #include "hteam/robot.h"
+#include "hteam/functions.h"
 
 // Controller
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
 
-// Define a variable to store the previous state of the button
-bool mogoButtonPressed = false;
-bool doinkerButtonPressed = false;
+// Create Toggles for MOGO and Doinker
+Toggle mogoToggle();
+Toggle doinkerToggle();
 
+// Create a shared pointer Robot object
 std::shared_ptr<Robot> robot = std::make_shared<Robot>();
-
-int intake1_volt = 0;
-int intake2_volt = 0;
 
 Autons autons(robot);
 
-// Create our interface object
+// Create interface object
 Interface interface;
 
 void initialize() {
@@ -85,12 +84,20 @@ void autonomous() {
 void opcontrol() {
     robot->intake2.disableColorSorting();  // Drivers don't need color sorting
 
-    robot->chassis.moveToPoint(48, 48, 10000, {}, false);
-    robot->chassis.moveToPose(0, 0, 0, 10000, {.forwards=false}, false);
+    // ODOM TESTING
+//    robot->chassis.moveToPoint(48, 48, 10000, {}, false);
+//    robot->chassis.moveToPose(0, 0, 0, 10000, {.forwards=false}, false);
+
+    // Declare default voltages for both intake stages
+    int intake1_volt;
+    int intake2_volt;
+
+    int leftY;
+    int rightX;
 
     while (true) {
-        int leftY = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
-        int rightX = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
+        leftY = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
+        rightX = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
 
         intake1_volt = 0;
         intake2_volt = 0;
@@ -123,31 +130,14 @@ void opcontrol() {
             intake2_volt = -12000;
         }
 
-        robot->liftPneumatic.set_value(robot->liftUp);
+        // Set intake voltages
         robot->intake1.move_voltage(intake1_volt);
         robot->intake2.setVoltage(intake2_volt);
 
-        // Detect button press for toggling the MOGO pneumatic
-        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_B)) {  // 'B' button used for toggle
-            if (!mogoButtonPressed) {  // Toggle only when the button is pressed, not held
-                robot->mogoPneumaticState = !robot->mogoPneumaticState;  // Toggle the pneumatic state
-                robot->mogoPneumatic.set_value(robot->mogoPneumaticState);  // Set the pneumatic to the new state
-                mogoButtonPressed = true;  // Update the button pressed state
-            }
-        } else {
-            mogoButtonPressed = false;  // Reset the button pressed state when the button is released
-        }
-
-        // Detect button press for toggling the DOINKER pneumatic
-        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN)) {  // 'Down' button used for toggle
-            if (!doinkerButtonPressed) {  // Toggle only when the button is pressed, not held
-                robot->doinkerPneumaticState = !robot->doinkerPneumaticState;  // Toggle the pneumatic state
-                robot->doinkerPneumatic.set_value(robot->doinkerPneumaticState);  // Set the pneumatic to the new state
-                doinkerButtonPressed = true;  // Update the button pressed state
-            }
-        } else {
-            doinkerButtonPressed = false;  // Reset the button pressed state when the button is released
-        }
+        // Determine pneumatic states
+        robot->mogoPneumatic.set_value(mogoToggle().update(controller.get_digital(pros::E_CONTROLLER_DIGITAL_B)));
+        robot->doinkerPneumatic.set_value(doinkerToggle().update(controller.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN)));
+        robot->liftPneumatic.set_value(robot->liftUp);
 
         // Move bot with split-arcade drive
         robot->chassis.arcade(leftY, rightX);

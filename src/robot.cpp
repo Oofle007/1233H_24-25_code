@@ -6,7 +6,7 @@
 
 #include "hteam/robot.h"
 
-Robot::Robot() : mogoPneumaticState(false), doinkerPneumaticState(false),
+Robot::Robot() :
                  mogoPneumatic('C'), liftPneumatic('A'), doinkerPneumatic('F'),
                  intake1(-6), intake2(4),
                  leftMotors({-5, 1, -11}, pros::MotorGearset::blue), // Rear, Stacked, Front
