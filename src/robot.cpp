@@ -6,30 +6,31 @@
 
 #include "hteam/robot.h"
 
-Robot::Robot() :
-                 mogoPneumatic('C'), liftPneumatic('A'), doinkerPneumatic('F'),
-                 intake1(-6), intake2(4),
+Robot::Robot() : mogoPneumaticState(false), doinkerPneumaticState(false),
+                 mogoPneumatic('C'), doinkerPneumatic('F'),
+                 intake(4),
+                 arm(11, 12),
                  leftMotors({-5, 1, -11}, pros::MotorGearset::blue), // Rear, Stacked, Front
                  rightMotors({9, -10, 20}, pros::MotorGearset::blue),
                  drivetrain(&leftMotors, // left motors
                             &rightMotors, // right motors
                             12.5, // Track Width
-                            lemlib::Omniwheel::NEW_325, // Wheel
+                            3.25, // Wheel
                             480, // Drive RPM
                             2 // Horizontal Drift
                  ),
-                 lateralController(3, // proportional gain (kP)
+                 lateralController(6, // proportional gain (kP)
                                    0, // integral gain (kI)
-                                   0, // derivative gain (kD)
+                                   3.5, // derivative gain (kD)
                                    0, // anti-windup
                                    1.5, // small error range, in inches
                                    100, // small error range timeout, in milliseconds
                                    3.5, // large error range, in inches
                                    500, // large error range timeout, in milliseconds
                                    50), // maximum acceleration (slew)
-                 angularController(1, // proportional gain (kP)
+                 angularController(1.1, // proportional gain (kP)
                                    0, // integral gain (kI)
-                                   0, // derivative gain (kD)
+                                   0.1, // derivative gain (kD)
                                    0, // anti-windup
                                    1.5, // small error range, in degrees
                                    100, // small error range timeout, in milliseconds
@@ -38,8 +39,8 @@ Robot::Robot() :
                                    90), // maximum acceleration (slew)
                  horizontalEncoder(-13),
                  verticalEncoder(8),
-                 horizontalTrackingWheel(&horizontalEncoder, lemlib::Omniwheel::NEW_275, 0, 1),
-                 verticalTrackingWheel(&verticalEncoder, lemlib::Omniwheel::NEW_275, 1.625, 1),
+                 horizontalTrackingWheel(&horizontalEncoder, 2.75, 0),
+                 verticalTrackingWheel(&verticalEncoder, 2.75, 1.625),
                  imu(12),
                  sensors(&verticalTrackingWheel, // Vertical Encoder
                          nullptr, // No second Vertical Encoder
@@ -57,12 +58,11 @@ Robot::Robot() :
                          angularController,
                          sensors,
                          &throttle_curve,
-                         &steer_curve),
-                 liftUp(false) {}
+                         &steer_curve) {}
 
 
 Intake::Intake(const std::int8_t intakePort) : intakeMotor(intakePort, pros::MotorGearset::blue),
-                                               sortColors(true),
+                                               sortColors(false),
                                                allowedColor(RED),  // Auto default allowed color to Red
                                                currentVoltage(0),
                                                mutex(),
@@ -72,7 +72,9 @@ Intake::Intake(const std::int8_t intakePort) : intakeMotor(intakePort, pros::Mot
                                                        0,  // kD
                                                        0,  // integral anti windup range
                                                        false),  // don't reset integral when sign of error flips
-                                               opticalSensor(14) {}
+                                               opticalSensor(14) {
+    opticalSensor.set_led_pwm(0);
+}
 
 void Intake::startIntakeTask() {
     pros::Task myTask(intakeTask, this, "IntakeMoveTask");
@@ -122,8 +124,8 @@ void Intake::intakeTask(void *param) {
 
     // Declare variables for color sorting
     const float REVERSE_TIME = 50;  // Time that the intake will reverse in MILLISECONDS
-    const int MIN_PROX = 60; // Minimum proximity (distance) that the color sorter "detects" a ring
-    const double BLUE_RING_HUE = 150;
+    const int MIN_PROX = 110; // Minimum proximity (distance) that the color sorter "detects" a ring
+    const double BLUE_RING_HUE = 70;
     double timeStartReverse;  // The time in milliseconds when we set the intake to run in reverse
     const std::uint8_t INTAKE2TARGET = 0;  // The intake's goal will always be 0
     float holdPIDoutput;
@@ -164,5 +166,57 @@ void Intake::intakeTask(void *param) {
 
         intake->mutex.give();
         pros::delay(20); // don't hog CPU
+    }
+}
+
+Arm::Arm(const std::int8_t motor1Port, const std::int8_t motor2Port) : armMotors({motor1Port, motor2Port}),
+             armPID(10,
+                    0,
+                    0,
+                    0,
+                    false),
+             mutex(),
+             targetPosition(0) {}
+
+void Arm::startArmTask() {
+    pros::Task myTask1(armTask, this, "ArmTask");
+}
+
+void Arm::setPosition(int position) {
+    mutex.take();
+    targetPosition = position;
+    mutex.give();
+}
+
+void Arm::setZeroPosition() {
+    mutex.take();
+    armMotors.tare_position();
+    mutex.give();
+}
+
+void Arm::armTask(void *param) {
+    Arm *arm = static_cast<Arm *>(param);
+
+    double error;
+    double output;
+
+    while (true) {
+        arm->mutex.take();
+
+        error = arm->targetPosition - arm->armMotors.get_position();
+        output = arm->armPID.update(error);
+
+        // Ensure we don't over-volt the 5.5w motors
+        if (output > 6000) {
+            output = 6000;
+        } else if (output < -6000) {
+            output = -6000;
+        }
+
+        arm->armMotors.move_voltage(output);
+
+        arm->mutex.give();
+
+        pros::delay(20);
     }
 }

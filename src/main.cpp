@@ -8,17 +8,23 @@
 #include "hteam/interface.h"
 #include "hteam/autons.h"
 #include "hteam/robot.h"
-#include "hteam/functions.h"
 
 // Controller
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
 
-// Create Toggles for MOGO and Doinker
-Toggle mogoToggle();
-Toggle doinkerToggle();
+// Define a variable to store the previous state of the button
+bool mogoButtonPressed = false;
+bool doinkerButtonPressed = false;
 
-// Create a shared pointer Robot object
+// LADY BROWN HEIGHTS
+const int MOGO_POSITION = 0;
+const int RING1_POSITION = 0;
+const int RING2_POSITION = 0;
+const int SCORE_POSITION = 0;
+
 std::shared_ptr<Robot> robot = std::make_shared<Robot>();
+
+int intakeVolt = 0;
 
 Autons autons(robot);
 
@@ -27,7 +33,9 @@ Interface interface;
 
 void initialize() {
     robot->chassis.calibrate(); // calibrate sensors
-    robot->intake2.startIntakeTask();  // Start the intake task
+    robot->intake.startIntakeTask();  // Start the intake task
+    robot->arm.startArmTask();  // Start the arm task
+    robot->arm.setZeroPosition();
 }
 
 void disabled() {}
@@ -37,112 +45,116 @@ void competition_initialize() {
 }
 
 void autonomous() {
+    robot->intake.enableColorSorting();
+
     auto auton = interface.getSelectedAuton();
-    robot->intake2.enableColorSorting();
     switch (auton) {
         case NONE:
             break;
         case RED_1:
-            robot->intake2.setAllowedColor(RED);
+            robot->intake.setAllowedColor(RED);
             autons.red1();
             break;
         case RED_2:
-            robot->intake2.setAllowedColor(RED);
+            robot->intake.setAllowedColor(RED);
             autons.red2();
             break;
         case RED_3:
-            robot->intake2.setAllowedColor(RED);
+            robot->intake.setAllowedColor(RED);
             autons.red3();
             break;
         case RED_4:
-            robot->intake2.setAllowedColor(RED);
+            robot->intake.setAllowedColor(RED);
             autons.red4();
             break;
         case BLUE_1:
-            robot->intake2.setAllowedColor(BLUE);
+            robot->intake.setAllowedColor(BLUE);
             autons.blue1();
             break;
         case BLUE_2:
-            robot->intake2.setAllowedColor(BLUE);
+            robot->intake.setAllowedColor(BLUE);
             autons.blue2();
             break;
         case BLUE_3:
-            robot->intake2.setAllowedColor(BLUE);
+            robot->intake.setAllowedColor(BLUE);
             autons.blue3();
             break;
         case BLUE_4:
-            robot->intake2.setAllowedColor(BLUE);
+            robot->intake.setAllowedColor(BLUE);
             autons.blue4();
             break;
         case SKILLS:
-            robot->intake2.setAllowedColor(RED);
+            robot->intake.setAllowedColor(RED);
             autons.skills();
             break;
     }
 }
 
 void opcontrol() {
-    robot->intake2.disableColorSorting();  // Drivers don't need color sorting
-
-    // ODOM TESTING
-//    robot->chassis.moveToPoint(48, 48, 10000, {}, false);
-//    robot->chassis.moveToPose(0, 0, 0, 10000, {.forwards=false}, false);
-
-    // Declare default voltages for both intake stages
-    int intake1_volt;
-    int intake2_volt;
-
-    int leftY;
-    int rightX;
+    robot->intake.setVoltage(0);
+    robot->intake.disableColorSorting();
 
     while (true) {
-        leftY = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
-        rightX = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
 
-        intake1_volt = 0;
-        intake2_volt = 0;
+        int leftY = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
+        int rightX = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
+
+        intakeVolt = 0;
 
         // Detect Button presses
-        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {  // 2nd stage intake
-            intake2_volt = 12000;
+        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {  // Intake Forward
+            intakeVolt = 12000;
         }
 
-        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_RIGHT)) {
-            controller.rumble("-");
+        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {  // Intake Reverse
+            intakeVolt = -12000;
         }
 
-        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {  // 1st stage intake
-            intake1_volt = 12000;
+        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) {  // LB Score Position
+            robot->arm.setPosition(SCORE_POSITION);
         }
 
-        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) {  // Lift Up
-            robot->liftUp = true;
-            robot->intake2.holdIntake();
+        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) {  // LB Mogo Position
+            robot->arm.setPosition(MOGO_POSITION);
         }
 
-        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) {  // Lift Down
-            robot->liftUp = false;
-            robot->intake2.stopHoldingIntake();
+        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN)) {  // LB Ring 1 Position
+            robot->arm.setPosition(RING1_POSITION);
         }
 
-        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y)) { // Reverse Intake
-            intake1_volt = -12000;
-            intake2_volt = -12000;
+//        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_RIGHT)) {  // LB Ring 2 Position
+//            robot->arm.setPosition(RING2_POSITION);
+//        }
+
+
+
+        robot->intake.setVoltage(intakeVolt);
+
+        // Detect button press for toggling the MOGO pneumatic
+        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_B)) {  // 'B' button used for toggle
+            if (!mogoButtonPressed) {  // Toggle only when the button is pressed, not held
+                robot->mogoPneumaticState = !robot->mogoPneumaticState;  // Toggle the pneumatic state
+                robot->mogoPneumatic.set_value(robot->mogoPneumaticState);  // Set the pneumatic to the new state
+                mogoButtonPressed = true;  // Update the button pressed state
+            }
+        } else {
+            mogoButtonPressed = false;  // Reset the button pressed state when the button is released
         }
 
-        // Set intake voltages
-        robot->intake1.move_voltage(intake1_volt);
-        robot->intake2.setVoltage(intake2_volt);
-
-        // Determine pneumatic states
-        robot->mogoPneumatic.set_value(mogoToggle().update(controller.get_digital(pros::E_CONTROLLER_DIGITAL_B)));
-        robot->doinkerPneumatic.set_value(doinkerToggle().update(controller.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN)));
-        robot->liftPneumatic.set_value(robot->liftUp);
+        // Detect button press for toggling the DOINKER pneumatic
+        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y)) {  // 'Down' button used for toggle
+            if (!doinkerButtonPressed) {  // Toggle only when the button is pressed, not held
+                robot->doinkerPneumaticState = !robot->doinkerPneumaticState;  // Toggle the pneumatic state
+                robot->doinkerPneumatic.set_value(robot->doinkerPneumaticState);  // Set the pneumatic to the new state
+                doinkerButtonPressed = true;  // Update the button pressed state
+            }
+        } else {
+            doinkerButtonPressed = false;  // Reset the button pressed state when the button is released
+        }
 
         // Move bot with split-arcade drive
         robot->chassis.arcade(leftY, rightX);
 
-        // Print position
         pros::screen::print(pros::E_TEXT_MEDIUM, 50, 15, "X: %f", robot->chassis.getPose().x);
         pros::screen::print(pros::E_TEXT_MEDIUM, 50, 30, "Y: %f", robot->chassis.getPose().y);
         pros::screen::print(pros::E_TEXT_MEDIUM, 50, 45, "Theta: %f", robot->chassis.getPose().theta);

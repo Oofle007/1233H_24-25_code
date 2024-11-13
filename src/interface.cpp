@@ -10,13 +10,13 @@
 std::string toString(Auton auton) {
     switch (auton) {
         case NONE: return "None";
-        case RED_1: return "Red 1";
-        case RED_2: return "Red 2";
-        case RED_3: return "Red 3";
+        case RED_1: return "Red Left 4 Ring Touch";
+        case RED_2: return "Red Left 4 Ring Clear (ELIM)";
+        case RED_3: return "Red Left Alliance Stake Solo WP";
         case RED_4: return "Red 4";
-        case BLUE_1: return "Blue 1";
-        case BLUE_2: return "Blue 2";
-        case BLUE_3: return "Blue 3";
+        case BLUE_1: return "Blue Right 4 Ring Touch";
+        case BLUE_2: return "Blue Right 4 Ring Clear (ELIM)";
+        case BLUE_3: return "Blue Right Alliance Stake Solo WP";
         case BLUE_4: return "Blue 4";
         case SKILLS: return "Skills";
         default: return "Unknown";
@@ -109,7 +109,7 @@ void Interface::run() {
             pros::screen::draw_rect(5, 5, 475, 235);
 
             pros::screen::set_pen(pros::Color::white);
-            pros::screen::print(pros::E_TEXT_LARGE, 100, 100, "%s", toString(selectedAuton));
+            pros::screen::print(pros::E_TEXT_LARGE, 50, 100, "%s", toString(selectedAuton));
             break;
         }
 
@@ -165,10 +165,10 @@ void Interface::displayRedScreen() {
     pros::screen::fill_rect(6, 45, 154, 55);
 
     // Create all the buttons for the screen
-    createButton(10, 70, 117, 230, "RSWP", pros::Color::red, RED_1);
-    createButton(128, 70, 235, 230, "L4MOGO", pros::Color::red, RED_2);
-    createButton(245, 70, 352, 230, "Auton 3", pros::Color::red, RED_3);
-    createButton(362, 70, 470, 230, "Auton 4", pros::Color::red, RED_4);
+    createButton(10, 70, 117, 230, "LSafe", pros::Color::red, RED_1);
+    createButton(128, 70, 235, 230, "LclearC", pros::Color::red, RED_2);
+    createButton(245, 70, 352, 230, "Lwp", pros::Color::red, RED_3);
+    createButton(362, 70, 470, 230, "", pros::Color::red, RED_4);
 }
 
 void Interface::displayBlueScreen() {
@@ -177,10 +177,10 @@ void Interface::displayBlueScreen() {
     pros::screen::fill_rect(161, 45, 314, 55);
 
     // Create all the buttons for the screen
-    createButton(10, 70, 117, 230, "LSWP", pros::Color::blue, BLUE_1);
-    createButton(128, 70, 235, 230, "R4MOGO", pros::Color::blue, BLUE_2);
-    createButton(245, 70, 352, 230, "Auton 3", pros::Color::blue, BLUE_3);
-    createButton(362, 70, 470, 230, "Auton 4", pros::Color::blue, BLUE_4);
+    createButton(10, 70, 117, 230, "RSafe", pros::Color::blue, BLUE_1);
+    createButton(128, 70, 235, 230, "RclearC", pros::Color::blue, BLUE_2);
+    createButton(245, 70, 352, 230, "Rwp", pros::Color::blue, BLUE_3);
+    createButton(362, 70, 470, 230, "", pros::Color::blue, BLUE_4);
 
 }
 
@@ -190,7 +190,7 @@ void Interface::displaySkillsScreen() {
     pros::screen::fill_rect(321, 45, 474, 55);
 
     // Create the skills button
-    createButton(30, 90, 450, 210, "45 PT SKILLS", pros::Color::white, SKILLS);
+    createButton(30, 90, 450, 210, "SKILLS", pros::Color::white, SKILLS);
 }
 
 void Interface::createButton(std::int16_t x0, std::int16_t y0, std::int16_t x1, std::int16_t y1, std::string text,

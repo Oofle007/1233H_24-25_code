@@ -1,8 +1,26 @@
 #include "pros/apix.h"
-#include "lemlib/chassis/chassis.hpp"
+#include "lemlib/api.hpp"
+#include <algorithm>
 
 #ifndef INC_1233H_24_25_CODE_ROBOT_H
 #define INC_1233H_24_25_CODE_ROBOT_H
+
+class Arm {
+public:
+    Arm(std::int8_t motor1Port, std::int8_t motor2Port);
+
+    void startArmTask();
+    void setPosition(int position);
+    void setZeroPosition();
+private:
+    lemlib::PID armPID;
+    pros::MotorGroup armMotors;
+
+    double targetPosition;
+
+    pros::Mutex mutex;
+    static void armTask(void* param);
+};
 
 enum Color {
     BLUE, RED
@@ -36,12 +54,13 @@ class Robot {
 public:
     Robot();
 
+    bool mogoPneumaticState;
+    bool doinkerPneumaticState;
     pros::adi::DigitalOut mogoPneumatic;
-    pros::adi::DigitalOut liftPneumatic;
     pros::adi::DigitalOut doinkerPneumatic;
 
-    pros::Motor intake1;
-    Intake intake2;
+    Intake intake;
+    Arm arm;
 
     pros::MotorGroup leftMotors;
     pros::MotorGroup rightMotors;
@@ -61,8 +80,6 @@ public:
     lemlib::ExpoDriveCurve steer_curve;
 
     lemlib::Chassis chassis;
-
-    bool liftUp;
 };
 
 #endif //INC_1233H_24_25_CODE_ROBOT_H

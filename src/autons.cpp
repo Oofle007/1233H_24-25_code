@@ -11,15 +11,15 @@ Autons::Autons(std::shared_ptr<Robot> robot) : robot(std::move(robot)) {
 
 }
 
-void Autons::red1() {  // RSWP
+void Autons::red1() {  // Left 4 Ring Touch
 
 }
 
-void Autons::red2() { // L4MOGO
+void Autons::red2() {  // Left 4 Ring Clear (ELIM)
 
 }
 
-void Autons::red3() {
+void Autons::red3() {  // Left Alliance Stake Solo WP
 
 }
 
@@ -27,15 +27,15 @@ void Autons::red4() {
 
 }
 
-void Autons::blue1() {  // RSWP
+void Autons::blue1() {  // Right 4 Ring Touch
 
 }
 
-void Autons::blue2() { // L4MOGO
+void Autons::blue2() {  // Right 4 Ring Clear (ELIM)
 
 }
 
-void Autons::blue3() {
+void Autons::blue3() {  // Right Alliance Stake Solo WP
 
 }
 

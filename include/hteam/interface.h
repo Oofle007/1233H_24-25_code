@@ -3,7 +3,6 @@
 
 #include "pros/screen.hpp"
 #include "pros/apix.h"
-#include "arm.h"
 #include "main.h"
 
 enum Auton {
