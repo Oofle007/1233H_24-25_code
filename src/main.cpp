@@ -17,10 +17,10 @@ bool mogoButtonPressed = false;
 bool doinkerButtonPressed = false;
 
 // LADY BROWN HEIGHTS
-const int MOGO_POSITION = 0;
-const int RING1_POSITION = 0;
+const int MOGO_POSITION = 10;
+const int RING1_POSITION = 333;
 const int RING2_POSITION = 0;
-const int SCORE_POSITION = 0;
+const int SCORE_POSITION = 220;
 
 std::shared_ptr<Robot> robot = std::make_shared<Robot>();
 
@@ -35,7 +35,6 @@ void initialize() {
     robot->chassis.calibrate(); // calibrate sensors
     robot->intake.startIntakeTask();  // Start the intake task
     robot->arm.startArmTask();  // Start the arm task
-    robot->arm.setZeroPosition();
 }
 
 void disabled() {}
@@ -45,7 +44,7 @@ void competition_initialize() {
 }
 
 void autonomous() {
-    robot->intake.enableColorSorting();
+    robot->intake.disableColorSorting();
 
     auto auton = interface.getSelectedAuton();
     switch (auton) {
@@ -93,6 +92,7 @@ void autonomous() {
 void opcontrol() {
     robot->intake.setVoltage(0);
     robot->intake.disableColorSorting();
+    robot->arm.setPosition(0);
 
     while (true) {
 
@@ -106,23 +106,27 @@ void opcontrol() {
             intakeVolt = 12000;
         }
 
-        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {  // Intake Reverse
+        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {  // Intake Reverse
             intakeVolt = -12000;
         }
 
         if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) {  // LB Score Position
-            robot->arm.setPosition(SCORE_POSITION);
+            robot->arm.setPosition(150);
         }
 
         if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) {  // LB Mogo Position
-            robot->arm.setPosition(MOGO_POSITION);
+            robot->arm.setPosition(0);
         }
 
-        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN)) {  // LB Ring 1 Position
-            robot->arm.setPosition(RING1_POSITION);
+        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_RIGHT)) {  // LB Ring 1 Position
+            robot->arm.setPosition(28);
         }
 
-//        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_RIGHT)) {  // LB Ring 2 Position
+        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN)) { // Almost score position
+            robot->arm.setPosition(115);
+        }
+
+//        if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN)) {  // LB Ring 2 Position
 //            robot->arm.setPosition(RING2_POSITION);
 //        }
 

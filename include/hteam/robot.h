@@ -15,6 +15,7 @@ public:
 private:
     lemlib::PID armPID;
     pros::MotorGroup armMotors;
+    pros::Rotation rotation;
 
     double targetPosition;
 

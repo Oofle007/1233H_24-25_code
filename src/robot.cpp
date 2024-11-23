@@ -8,10 +8,10 @@
 
 Robot::Robot() : mogoPneumaticState(false), doinkerPneumaticState(false),
                  mogoPneumatic('C'), doinkerPneumatic('F'),
-                 intake(4),
-                 arm(11, 12),
-                 leftMotors({-5, 1, -11}, pros::MotorGearset::blue), // Rear, Stacked, Front
-                 rightMotors({9, -10, 20}, pros::MotorGearset::blue),
+                 intake(-1),
+                 arm(10, -20),
+                 leftMotors({-16, 12, -13}, pros::MotorGearset::blue), // Rear, Stacked, Front
+                 rightMotors({6, -2, 3}, pros::MotorGearset::blue),
                  drivetrain(&leftMotors, // left motors
                             &rightMotors, // right motors
                             12.5, // Track Width
@@ -37,11 +37,11 @@ Robot::Robot() : mogoPneumaticState(false), doinkerPneumaticState(false),
                                    3.5, // large error range, in degrees
                                    500, // large error range timeout, in milliseconds
                                    90), // maximum acceleration (slew)
-                 horizontalEncoder(-13),
-                 verticalEncoder(8),
-                 horizontalTrackingWheel(&horizontalEncoder, 2.75, 0),
-                 verticalTrackingWheel(&verticalEncoder, 2.75, 1.625),
-                 imu(12),
+                 horizontalEncoder(5),
+                 verticalEncoder(-4),
+                 horizontalTrackingWheel(&horizontalEncoder, 2.75, 1.15),
+                 verticalTrackingWheel(&verticalEncoder, 2.75, -1.55),
+                 imu(9),
                  sensors(&verticalTrackingWheel, // Vertical Encoder
                          nullptr, // No second Vertical Encoder
                          &horizontalTrackingWheel, // Horizontal tracking wheel
@@ -170,13 +170,14 @@ void Intake::intakeTask(void *param) {
 }
 
 Arm::Arm(const std::int8_t motor1Port, const std::int8_t motor2Port) : armMotors({motor1Port, motor2Port}),
-             armPID(10,
+             armPID(150,
                     0,
-                    0,
+                    100,
                     0,
                     false),
              mutex(),
-             targetPosition(0) {}
+             targetPosition(0),
+             rotation(-11) {}
 
 void Arm::startArmTask() {
     pros::Task myTask1(armTask, this, "ArmTask");
@@ -198,13 +199,27 @@ void Arm::armTask(void *param) {
     Arm *arm = static_cast<Arm *>(param);
 
     double error;
+    double normalizedRotation;
     double output;
 
     while (true) {
         arm->mutex.take();
 
-        error = arm->targetPosition - arm->armMotors.get_position();
+        normalizedRotation = arm->rotation.get_angle() / 100.0;  // Rotation sensor returns centidegrees and i want degrees
+
+        error = arm->targetPosition - normalizedRotation;
+
+        // Normalize the error to the range [-180, 180]
+        if (error > 180) {
+            error -= 360;
+        } else if (error < -180) {
+            error += 360;
+        }
+
         output = arm->armPID.update(error);
+
+        pros::screen::print(pros::E_TEXT_MEDIUM, 50, 60, "Rotation: %f", normalizedRotation);
+        pros::screen::print(pros::E_TEXT_MEDIUM, 50, 75, "Error: %f", error);
 
         // Ensure we don't over-volt the 5.5w motors
         if (output > 6000) {
@@ -213,7 +228,12 @@ void Arm::armTask(void *param) {
             output = -6000;
         }
 
+        if (arm->targetPosition == 0 && fabs(error) <= 3) {  // we don't need to move the arm when its at mogo score position
+            output = 0;
+        }
+
         arm->armMotors.move_voltage(output);
+        pros::screen::print(pros::E_TEXT_MEDIUM, 50, 90, "output: %f", output);
 
         arm->mutex.give();
 
