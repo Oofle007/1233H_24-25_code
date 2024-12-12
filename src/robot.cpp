@@ -7,7 +7,7 @@
 #include "hteam/robot.h"
 
 Robot::Robot() : mogoPneumaticState(false), doinkerPneumaticState(false),
-                 mogoPneumatic('C'), doinkerPneumatic('F'),
+                 mogoPneumatic('C'), doinkerPneumatic('G'),
                  intake(-1),
                  arm(10, -20),
                  leftMotors({-16, 12, -13}, pros::MotorGearset::blue), // Rear, Stacked, Front
@@ -40,7 +40,7 @@ Robot::Robot() : mogoPneumaticState(false), doinkerPneumaticState(false),
                  horizontalEncoder(5),
                  verticalEncoder(-4),
                  horizontalTrackingWheel(&horizontalEncoder, 2.75, 1.15),
-                 verticalTrackingWheel(&verticalEncoder, 2.75, -1.55),
+                 verticalTrackingWheel(&verticalEncoder, 2.75, -1.51),
                  imu(9),
                  sensors(&verticalTrackingWheel, // Vertical Encoder
                          nullptr, // No second Vertical Encoder
@@ -183,7 +183,7 @@ void Arm::startArmTask() {
     pros::Task myTask1(armTask, this, "ArmTask");
 }
 
-void Arm::setPosition(int position) {
+void Arm::setPosition(double position) {
     mutex.take();
     targetPosition = position;
     mutex.give();

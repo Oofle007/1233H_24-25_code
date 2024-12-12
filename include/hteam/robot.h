@@ -10,7 +10,7 @@ public:
     Arm(std::int8_t motor1Port, std::int8_t motor2Port);
 
     void startArmTask();
-    void setPosition(int position);
+    void setPosition(double position);
     void setZeroPosition();
 private:
     lemlib::PID armPID;

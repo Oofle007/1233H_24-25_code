@@ -87,6 +87,8 @@ void autonomous() {
             autons.skills();
             break;
     }
+
+    autons.red2();
 }
 
 void opcontrol() {
@@ -119,7 +121,7 @@ void opcontrol() {
         }
 
         if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_RIGHT)) {  // LB Ring 1 Position
-            robot->arm.setPosition(28);
+            robot->arm.setPosition(29);
         }
 
         if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN)) { // Almost score position
