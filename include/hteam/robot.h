@@ -33,6 +33,7 @@ public:
     void startIntakeTask();
     void enableColorSorting();
     void disableColorSorting();
+    void armUpdated();
     void holdIntake();
     void stopHoldingIntake();
     void setVoltage(std::int32_t voltage);
@@ -42,6 +43,8 @@ private:
     std::int32_t currentVoltage;
     bool holding;
     lemlib::PID holdPID;
+    bool taskRunning;
+    double timeStartReverseARM; // The time in milliseconds when we set the intake to run in reverse for lady brown
 
     bool sortColors;
     Color allowedColor;

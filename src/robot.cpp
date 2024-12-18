@@ -72,12 +72,17 @@ Intake::Intake(const std::int8_t intakePort) : intakeMotor(intakePort, pros::Mot
                                                        0,  // kD
                                                        0,  // integral anti windup range
                                                        false),  // don't reset integral when sign of error flips
-                                               opticalSensor(14) {
+                                               opticalSensor(14),
+                                               taskRunning(false),
+                                               timeStartReverseARM() {
     opticalSensor.set_led_pwm(0);
 }
 
 void Intake::startIntakeTask() {
-    pros::Task myTask(intakeTask, this, "IntakeMoveTask");
+    if (!taskRunning) {
+        pros::Task myTask(intakeTask, this, "IntakeMoveTask");
+        taskRunning = true;
+    }
 }
 
 void Intake::enableColorSorting() {
@@ -119,11 +124,18 @@ void Intake::setAllowedColor(Color color) {
     mutex.give();
 }
 
+void Intake::armUpdated() {
+    mutex.take();
+    timeStartReverseARM = pros::c::millis();  // Create a timestamp of when the arm was activated
+    mutex.give();
+}
+
 void Intake::intakeTask(void *param) {
     Intake *intake = static_cast<Intake *>(param);
 
     // Declare variables for color sorting
     const float REVERSE_TIME = 50;  // Time that the intake will reverse in MILLISECONDS
+    const float REVERSE_WALL_TIME = 20; // Time that the intake will reverse when lady brown moves
     const int MIN_PROX = 110; // Minimum proximity (distance) that the color sorter "detects" a ring
     const double BLUE_RING_HUE = 70;
     double timeStartReverse;  // The time in milliseconds when we set the intake to run in reverse
@@ -164,13 +176,18 @@ void Intake::intakeTask(void *param) {
 
         }
 
+        // Reverse intake when lady brown moves
+        if ((pros::c::millis() - intake->timeStartReverseARM) <= REVERSE_WALL_TIME) {
+            intake->intakeMotor.move_voltage(-12000);
+        }
+
         intake->mutex.give();
         pros::delay(20); // don't hog CPU
     }
 }
 
 Arm::Arm(const std::int8_t motor1Port, const std::int8_t motor2Port) : armMotors({motor1Port, motor2Port}),
-             armPID(150,
+             armPID(190,
                     0,
                     100,
                     0,

@@ -33,7 +33,6 @@ Interface interface;
 
 void initialize() {
     robot->chassis.calibrate(); // calibrate sensors
-    robot->intake.startIntakeTask();  // Start the intake task
     robot->arm.startArmTask();  // Start the arm task
 }
 
@@ -44,6 +43,7 @@ void competition_initialize() {
 }
 
 void autonomous() {
+    robot->intake.startIntakeTask();  // Start the intake task
     robot->intake.disableColorSorting();
 
     auto auton = interface.getSelectedAuton();
@@ -87,14 +87,13 @@ void autonomous() {
             autons.skills();
             break;
     }
-
-    autons.red2();
 }
 
 void opcontrol() {
     robot->intake.setVoltage(0);
     robot->intake.disableColorSorting();
     robot->arm.setPosition(0);
+    robot->intake.startIntakeTask();  // Start the intake task
 
     while (true) {
 
@@ -113,6 +112,7 @@ void opcontrol() {
         }
 
         if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) {  // LB Score Position
+            robot->intake.armUpdated();
             robot->arm.setPosition(150);
         }
 
@@ -121,10 +121,12 @@ void opcontrol() {
         }
 
         if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_RIGHT)) {  // LB Ring 1 Position
-            robot->arm.setPosition(29);
+            robot->arm.setPosition(26);
+
         }
 
         if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN)) { // Almost score position
+            robot->intake.armUpdated();
             robot->arm.setPosition(115);
         }
 
