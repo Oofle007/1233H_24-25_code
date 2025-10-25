@@ -5,66 +5,40 @@
 #ifndef INC_1233H_24_25_CODE_ROBOT_H
 #define INC_1233H_24_25_CODE_ROBOT_H
 
-class Arm {
-public:
-    Arm(std::int8_t motor1Port, std::int8_t motor2Port);
-
-    void startArmTask();
-    void setPosition(double position);
-    void setZeroPosition();
-private:
-    lemlib::PID armPID;
-    pros::MotorGroup armMotors;
-    pros::Rotation rotation;
-
-    double targetPosition;
-
-    pros::Mutex mutex;
-    static void armTask(void* param);
-};
-
 enum Color {
     BLUE, RED
 };
 
 class Intake {
 public:
-    explicit Intake(std::int8_t intakePort);
-    void startIntakeTask();
-    void enableColorSorting();
-    void disableColorSorting();
-    void armUpdated();
-    void holdIntake();
-    void stopHoldingIntake();
-    void setVoltage(std::int32_t voltage);
-    void setAllowedColor(Color color);
-private:
-    pros::Motor intakeMotor;
-    std::int32_t currentVoltage;
-    bool holding;
-    lemlib::PID holdPID;
-    bool taskRunning;
-    double timeStartReverseARM; // The time in milliseconds when we set the intake to run in reverse for lady brown
+    explicit Intake(std::int8_t firstStagePort, std::int8_t secondStagePort, std::int8_t miniRollerPort);
 
-    bool sortColors;
-    Color allowedColor;
-    pros::Optical opticalSensor;
+    void outtakeTop();
+    void outtakeBottom(bool closePneumatic=true);
+    void outtakeMiddle();
+    void intakeNoOuttake(bool closePneumatic=true);
+    void stopIntake();
 
-    pros::Mutex mutex;
-    static void intakeTask(void* param);
+    pros::adi::DigitalOut intakePneumatic;
+    pros::Distance distanceSensor;
+
+    pros::Motor firstStageMotor;
+    pros::Motor secondStageMotor;
+    pros::Motor miniRollerMotor;
+
 };
 
 class Robot {
 public:
     Robot();
 
-    bool mogoPneumaticState;
-    bool doinkerPneumaticState;
-    pros::adi::DigitalOut mogoPneumatic;
-    pros::adi::DigitalOut doinkerPneumatic;
+    bool matchLoaderPneumaticState;
+    bool parkPneumaticState;
+    pros::adi::DigitalOut matchLoaderPneumatic;
+    pros::adi::DigitalOut parkPneumatic;
+
 
     Intake intake;
-    Arm arm;
 
     pros::MotorGroup leftMotors;
     pros::MotorGroup rightMotors;
@@ -72,10 +46,8 @@ public:
     lemlib::ControllerSettings lateralController;
     lemlib::ControllerSettings angularController;
 
-    pros::Rotation horizontalEncoder;
     pros::Rotation verticalEncoder;
 
-    lemlib::TrackingWheel horizontalTrackingWheel;
     lemlib::TrackingWheel verticalTrackingWheel;
     pros::Imu imu;
 
