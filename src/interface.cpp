@@ -166,9 +166,9 @@ void Interface::displayRedScreen() {
 
     // Create all the buttons for the screen
     createButton(10, 70, 117, 230, "LEFT - SAWP", pros::Color::red, RED_1);
-    createButton(128, 70, 235, 230, "LEFT - 7T", pros::Color::red, RED_2);
-    createButton(245, 70, 352, 230, "LEFT - 7T 4M", pros::Color::red, RED_3);
-    createButton(362, 70, 470, 230, "RIGHT - 7T", pros::Color::red, RED_4);
+    createButton(128, 70, 235, 230, "LEFT - 5T4M", pros::Color::red, RED_2);
+    createButton(245, 70, 352, 230, "LEFT - 3T4M OG", pros::Color::red, RED_3);
+    createButton(362, 70, 470, 230, "LEFT - KILLER", pros::Color::red, RED_4);
 }
 
 void Interface::displayBlueScreen() {
@@ -178,9 +178,9 @@ void Interface::displayBlueScreen() {
 
     // Create all the buttons for the screen
     createButton(10, 70, 117, 230, "NONE", pros::Color::blue, BLUE_1);
-    createButton(128, 70, 235, 230, "LEFT - 7T", pros::Color::blue, BLUE_2);
-    createButton(245, 70, 352, 230, "LEFT - 7T 4M", pros::Color::blue, BLUE_3);
-    createButton(362, 70, 470, 230, "RIGHT - 7T", pros::Color::blue, BLUE_4);
+    createButton(128, 70, 235, 230, "NONE", pros::Color::blue, BLUE_2);
+    createButton(245, 70, 352, 230, "NONE", pros::Color::blue, BLUE_3);
+    createButton(362, 70, 470, 230, "NONE", pros::Color::blue, BLUE_4);
 }
 
 void Interface::displaySkillsScreen() {

@@ -7,7 +7,8 @@
 #include "hteam/robot.h"
 
 Robot::Robot() : matchLoaderPneumaticState(false), matchLoaderPneumatic('H'),
-                 parkPneumaticState(false), parkPneumatic('G'),
+                 parkPneumaticState(false), parkPneumatic('A'),
+                 descorePneumaticState(false), descorePneumatic('E'),
                  intake(19, -18, 9),
                  leftMotors({-12, -14, -15}, pros::MotorGearset::blue), // Rear, Middle, Front
                  rightMotors({13, 16, 17}, pros::MotorGearset::blue),
@@ -62,51 +63,48 @@ Intake::Intake(const std::int8_t firstStagePort, const std::int8_t secondStagePo
         firstStageMotor(firstStagePort),
         secondStageMotor(secondStagePort),
         miniRollerMotor(miniRollerPort),
-        intakePneumatic('E'),
+        intakePneumatic('G'),
+        intakePneumaticState(true),
         distanceSensor(20) {
 }
 
 void Intake::outtakeTop() {
-    firstStageMotor.move_voltage(12000);
+    firstStageMotor.move_voltage(-6000);
     secondStageMotor.move_voltage(12000);
-    miniRollerMotor.move_voltage(6000);
-    intakePneumatic.set_value(true);
+    miniRollerMotor.move_voltage(-6000);
 }
 
 void Intake::outtakeMiddle() {
-    firstStageMotor.move_voltage(12000);
-    secondStageMotor.move_voltage(6000);
-    miniRollerMotor.move_voltage(-6000);
-    intakePneumatic.set_value(false);
+    firstStageMotor.move_voltage(-6000);
+    secondStageMotor.move_voltage(12000);
+    miniRollerMotor.move_voltage(6000);
 }
 
 void Intake::outtakeBottom(const bool closePneumatic) {
-    firstStageMotor.move_voltage(-12000);  // halfed wattage to go slower
-    secondStageMotor.move_voltage(-6000);
-    miniRollerMotor.move_voltage(-6000);
-    if (closePneumatic) {
-        intakePneumatic.set_value(false);
-    }
+    firstStageMotor.move_voltage(6000);
+    secondStageMotor.move_voltage(-12000);
+    miniRollerMotor.move_voltage(6000);
 }
 
 void Intake::intakeNoOuttake(const bool closePneumatic) {
-    firstStageMotor.move_voltage(12000);
-    secondStageMotor.move_voltage(6000);
+    firstStageMotor.move_voltage(-6000);
+    secondStageMotor.move_voltage(12000);
+    miniRollerMotor.move_voltage(-6000);
+}
+
+void Intake::outtakeBottomSlow() {
+    firstStageMotor.move_voltage(5500);
+    secondStageMotor.move_voltage(-10000);
     miniRollerMotor.move_voltage(6000);
-    if (closePneumatic) {
-        intakePneumatic.set_value(false);
-    }
 }
 
 void Intake::stopIntake() {
     firstStageMotor.move_voltage(0);
     secondStageMotor.move_voltage(0);
     miniRollerMotor.move_voltage(0);
-
-    if (distanceSensor.get_distance() > 180) {
-        intakePneumatic.set_value(false);
-    }
 }
+
+
 
 
 

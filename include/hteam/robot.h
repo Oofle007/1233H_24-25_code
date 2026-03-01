@@ -17,9 +17,11 @@ public:
     void outtakeBottom(bool closePneumatic=true);
     void outtakeMiddle();
     void intakeNoOuttake(bool closePneumatic=true);
+    void outtakeBottomSlow();
     void stopIntake();
 
     pros::adi::DigitalOut intakePneumatic;
+    bool intakePneumaticState;
     pros::Distance distanceSensor;
 
     pros::Motor firstStageMotor;
@@ -34,8 +36,10 @@ public:
 
     bool matchLoaderPneumaticState;
     bool parkPneumaticState;
+    bool descorePneumaticState;
     pros::adi::DigitalOut matchLoaderPneumatic;
     pros::adi::DigitalOut parkPneumatic;
+    pros::adi::DigitalOut descorePneumatic;
 
 
     Intake intake;
