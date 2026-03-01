@@ -31,7 +31,6 @@ void Autons::red1() { // LEFT - 9 SAWP
 
     // Get matchloads
     robot->chassis.moveToPose(-47.5, -65, 180, 1500, {.lead=0, .maxSpeed=45, .minSpeed=5}, false);
-    // pros::delay(700);
 
     // Drive and score on long goal
     robot->intake.intakePneumatic.set_value(false);
@@ -72,56 +71,7 @@ void Autons::red1() { // LEFT - 9 SAWP
 }
 
 void Autons::red2() {  // LEFT - 5T4M
-    robot->chassis.setPose(-13.25, -45.6, 0);
 
-    // Get first clump of 3
-    robot->intake.intakeNoOuttake();
-    robot->chassis.moveToPoint(-13.5, -28, 400, {.maxSpeed=80});
-    robot->chassis.turnToHeading(-45, 300, {.minSpeed=30});
-    robot->chassis.moveToPose(-27, -15, -45, 1100, {.lead=0, .maxSpeed=30, .minSpeed=20, .earlyExitRange=2});
-
-    // Get 2 in mid
-    robot->chassis.moveToPose(-35, -20, -45, 1000, {.lead=0, .minSpeed=40, .earlyExitRange=2});
-    robot->chassis.moveToPose(-43, -7, -30, 1500, {.lead=0, .maxSpeed=90, .minSpeed=20}, false);
-    robot->matchLoaderPneumatic.set_value(true);
-    pros::delay(300);
-
-    // Move to mid goal
-    robot->chassis.moveToPose(-13, -13, -40, 1500, {.forwards=false, .lead=0, .maxSpeed=80});
-    robot->chassis.turnToHeading(-135, 500, {.maxSpeed=90}, false);
-
-    // score on mid goal
-    robot->chassis.moveToPose(-8, -8, -135, 1000, {.forwards=false, .lead=0, .maxSpeed=80});
-    robot->intake.outtakeBottom();
-    pros::delay(350);
-    robot->intake.outtakeMiddle();
-    pros::delay(1350);
-    robot->intake.intakeNoOuttake();
-
-    // Move to match loader
-    robot->chassis.moveToPose(-49, -45, -135, 1500, {.lead=0}, false);
-    robot->intake.outtakeMiddle();
-    pros::delay(100);
-    robot->intake.intakeNoOuttake();
-    robot->chassis.turnToHeading(180, 400, {.maxSpeed=100}, false);
-    robot->matchLoaderPneumatic.set_value(true);
-    robot->matchLoaderPneumaticState = true;
-
-    // Get matchloads
-    robot->chassis.moveToPose(-48.5, -58, 180, 600, {.lead=0, .maxSpeed=70, .minSpeed=10}, false);
-    robot->chassis.moveToPose(-48.5, -66, 180, 900, {.lead=0, .maxSpeed=30, .minSpeed=20}, false);
-
-    // Drive and score on long goal
-    robot->intake.intakePneumatic.set_value(false);
-    robot->intake.stopIntake();
-    robot->chassis.moveToPose(-48, -10, 180, 850, {.forwards=false, .lead=0, .minSpeed=10, .earlyExitRange=2}, false);
-    robot->intake.outtakeTop();
-    robot->chassis.moveToPose(-48, 0, 180, 3000, {.forwards=false, .lead=0, .maxSpeed=60, .earlyExitRange=2}, false);  // basically a wait but backing up into the goal
-    robot->intake.stopIntake();
-
-    // rail the goal
-    // robot->chassis.moveToPose(-48, -40, 180, 600, {.lead=0, .earlyExitRange=2}, false);
-    // robot->chassis.moveToPose(-48, 0, 180, 700, {.forwards=false, .lead=0, .minSpeed=100}, false);
 }
 
 void Autons::red3() {  // LEFT - 3T4M OG
@@ -199,7 +149,6 @@ void Autons::red4() {  // LEFT 4T3M CENTER
 
     // Move to mid goal
     robot->chassis.moveToPose(-13, -15, -135, 600, {.forwards=false, .lead=0, .maxSpeed=80});
-    //robot->chassis.turnToHeading(-135, 500, {.maxSpeed=90}, false);
 
     // score on mid goal
     robot->chassis.moveToPose(-8, -8, -135, 1000, {.forwards=false, .lead=0, .maxSpeed=80});
@@ -215,7 +164,6 @@ void Autons::red4() {  // LEFT 4T3M CENTER
     pros::delay(100);
     robot->intake.intakeNoOuttake();
     robot->chassis.turnToHeading(180, 400, {.maxSpeed=100}, false);
-    // robot->matchLoaderPneumatic.set_value(true);
 
     // Get matchloads
     robot->chassis.moveToPose(-48.5, -58, 180, 500, {.lead=0, .maxSpeed=70, .minSpeed=50}, false);
@@ -285,19 +233,14 @@ void Autons::skills() {
     robot->chassis.moveToPose(47.5, -24, 180, 1000, {.forwards=false, .lead=0, .maxSpeed=70, .minSpeed=5, .earlyExitRange=2}, false);
 
     // shuffle the cubes around
-    // robot->intake.outtakeBottom();
-    // pros::delay(400);
 
     robot->intake.outtakeTop();
-    // robot->matchLoaderPneumatic.set_value(false);
     robot->chassis.moveToPose(48, 0, 180, 3000, {.forwards=false, .lead=0, .maxSpeed=70, .earlyExitRange=2}, false);  // basically a wait but backing up into the goal
-    //pros::delay(4000);
     robot->intake.stopIntake();
 
     // Drive away from match loader and turn around to go to the next one
     robot->chassis.moveToPose(48.5, -45, 180, 1300, {.lead=0, .maxSpeed=90, .minSpeed=10, .earlyExitRange=2});
 
-    // return;
 
     // GO TO LEFT SIDE OF FIELD --------------------------------------------------
     robot->chassis.turnToHeading(-90, 400, {.maxSpeed=100}, false);
@@ -324,13 +267,9 @@ void Autons::skills() {
     robot->chassis.moveToPose(-48.5, -24, 180, 1000, {.forwards=false, .lead=0, .maxSpeed=70, .minSpeed=5, .earlyExitRange=2}, false);
 
     // // shuffle the cubes around
-    // robot->intake.outtakeBottom();
-    // pros::delay(400);
 
     robot->intake.outtakeTop();
-    // robot->matchLoaderPneumatic.set_value(false);
     robot->chassis.moveToPose(-48.5, 0, 180, 3000, {.forwards=false, .lead=0, .maxSpeed=70, .earlyExitRange=2}, false);  // basically a wait but backing up into the goal
-    //pros::delay(4000);
     robot->intake.stopIntake();
     robot->matchLoaderPneumatic.set_value(false);
 
@@ -387,9 +326,7 @@ void Autons::skills() {
     robot->chassis.moveToPose(47, 24, 0, 1000, {.forwards=false, .lead=0, .maxSpeed=70, .minSpeed=5, .earlyExitRange=2}, false);
 
     robot->intake.outtakeTop();
-    // robot->matchLoaderPneumatic.set_value(false);
     robot->chassis.moveToPose(47, 0, 0, 3000, {.forwards=false, .lead=0, .maxSpeed=70, .earlyExitRange=2}, false);  // basically a wait but backing up into the goal
-    //pros::delay(4000);
     robot->intake.stopIntake();
     //
 
@@ -421,9 +358,7 @@ void Autons::skills() {
     robot->chassis.moveToPose(-47, 24, 0, 1000, {.forwards=false, .lead=0, .maxSpeed=70, .minSpeed=5, .earlyExitRange=2}, false);
 
     robot->intake.outtakeTop();
-    // robot->matchLoaderPneumatic.set_value(false);
     robot->chassis.moveToPose(-47, 0, 0, 3000, {.forwards=false, .lead=0, .maxSpeed=70, .earlyExitRange=2}, false);  // basically a wait but backing up into the goal
-    //pros::delay(4000);
     robot->intake.stopIntake();
 
 
